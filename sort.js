@@ -76,43 +76,43 @@ var Sort = function () {
 		QuickSort(arr, 0, arr.length - 1);
 	}
 	// 归并排序
+	function MergeResolve (arr, gap, length) {
+		var i;
+		for (i = 0; i + 2 * gap - 1 < length; i = i + 2 * gap) {
+			MergeArray(arr, i, i + gap - 1, i + 2 * gap - 1);
+		}
+		// 假若后面的个数小于前待排序数组的元素个数
+		if (i + gap - 1 < length) {
+			MergeArray(arr, i, i + gap - 1, length - 1);
+		}
+	}
+	function MergeArray (arr, first, mid, last) {
+		var m = mid,
+			n = last,
+			i = first,
+			j = mid + 1,
+			k = 0, 
+			temp = [];
+		while (i <= m && j <= n) {
+			if (arr[i] < arr[j]) {
+				temp[k++] = arr[i++];
+			} else {
+				temp[k++] = arr[j++];
+			}
+		}
+		while (i <= m) {
+			temp[k++] = arr[i++];
+		}
+		while (j <= n) {
+			temp[k++] = arr[j++];
+		}
+		for (i = 0; i < k; i++) {
+			arr[first + i] = temp[i];
+		}
+	}
 	function MergeSort (arr) {
 		for (var gap = 1, len = arr.length; gap < len; gap *= 2) {
 			MergeResolve(arr, gap, len);
-		}
-		function MergeResolve (arr, gap, length) {
-			var i;
-			for (i = 0; i + 2 * gap - 1 < length; i = i + 2 * gap) {
-				MergeArray(arr, i, i + gap - 1, i + 2 * gap - 1);
-			}
-			// 假若后面的个数小于前待排序数组的元素个数
-			if (i + gap - 1 < length) {
-				MergeArray(arr, i, i + gap - 1, length - 1);
-			}
-		}
-		function MergeArray (arr, first, mid, last) {
-			var m = mid,
-				n = last,
-				i = first,
-				j = mid + 1,
-				k = 0, 
-				temp = [];
-			while (i <= m && j <= n) {
-				if (arr[i] < arr[j]) {
-					temp[k++] = arr[i++];
-				} else {
-					temp[k++] = arr[j++];
-				}
-			}
-			while (i <= m) {
-				temp[k++] = arr[i++];
-			}
-			while (j <= n) {
-				temp[k++] = arr[j++];
-			}
-			for (i = 0; i < k; i++) {
-				arr[first + i] = temp[i];
-			}
 		}
 	}
 	// 直接选择排序
@@ -169,6 +169,45 @@ var Sort = function () {
 			}
 		}
 	}
+	// 利用LSD进行基数排序
+	function getDigit (key, d) {
+		return (key / getDigit.arr[d - 1] | 0) % 10;
+	}
+	getDigit.arr = [1, 10, 100];
+	function RadixLSDSort (arr, digit) {
+		const radix = 10;   // 基数,以10进制来进行排序
+		var i = 0, 
+			j = 0,
+			count = Array(radix), // 0~9的桶
+			end = arr.length,
+			bucket = Array(end);
+		// 利用LSD,也就是次位优先
+		for (var d = 1; d <= digit; d++) {
+			for (i = 0; i < radix; i++) {
+				count[i] = 0;
+			}
+			// 向各个桶中添加元素,并统计出每个桶中装的个数
+			for (i = 0; i < end; i++) {
+				j = getDigit(arr[i], d);
+				count[j]++;
+			}
+			// count的越往后值最大,最大值为arr.length
+			// count数组的值为,该位数值为该索引的数字总数
+			for (i = 1; i < radix; i++) {
+				count[i] = count[i] + count[i - 1];
+			}
+			// 按照桶的顺序将导入temp中
+			for (i = end - 1; i >= 0; i--) {
+				j = getDigit(arr[i], d);
+				bucket[count[j] - 1] = arr[i];
+				count[j]--; 
+			}
+			// 将已经根据相应位数排好的序列导回arr中
+			for (i = 0; i < end; i++) {
+				arr[i] = bucket[i];
+			}
+		}	
+	}
 	return {
 		StraightInsertSort: StraightInsertSort,
 		ShellInsertSort: ShellInsertSort,
@@ -176,6 +215,7 @@ var Sort = function () {
 		QuickExchangeSort: QuickExchangeSort,
 		MergeSort: MergeSort,
 		HeapSelectSort: HeapSelectSort,
-		StraightSelectSort: StraightSelectSort
+		StraightSelectSort: StraightSelectSort,
+		RadixLSDSort: RadixLSDSort
 	};
 }();
